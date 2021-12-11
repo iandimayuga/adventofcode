@@ -12,10 +12,10 @@ _DIRECTION_PARSE = {"forward" : Direction.FORWARD, "down" : Direction.DOWN, "up"
 
 # A command for the submarine.
 class Command:
-  direction = Direction.NONE
-  magnitude = 0
-  
   def __init__(self, string) -> None:
+    self.direction = Direction.NONE
+    self.magnitude = 0
+  
     # Parse the command from a string such as "forward 3".
     command_strings = string.strip().split(' ')
     if (command_strings[0] in _DIRECTION_PARSE):
@@ -27,9 +27,10 @@ class Command:
     return "{:s} {:d}".format(self.direction, self.magnitude)
 
 class Submarine:
-  aim = 0
-  horizontal = 0
-  depth = 0
+  def __init__(self) -> None:
+    self.aim = 0
+    self.horizontal = 0
+    self.depth = 0
   
   def issue_command(self, command: Command) -> None:
     if (command.direction == Direction.FORWARD):
