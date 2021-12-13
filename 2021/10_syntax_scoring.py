@@ -1,42 +1,57 @@
+from statistics import median
 
 _DATA_FILE = "2021/data/10_syntax_scoring.txt"
 
-_CLOSE_BRACES = {
+_CLOSE_TO_OPEN = {
   ')':'(',
   ']':'[',
   '}':'{',
   '>':'<',
   }
 
-_OPEN_BRACES = {open: close for close, open in _CLOSE_BRACES.items()}
+_OPEN_TO_CLOSE = {open: close for close, open in _CLOSE_TO_OPEN.items()}
 
-_CLOSE_SCORES = {
+_ILLEGAL_SCORES = {
   ')':3,
   ']':57,
   '}':1197,
   '>':25137,
   }
 
+_COMPLETION_SCORES = {
+  ')':1,
+  ']':2,
+  '}':3,
+  '>':4,
+  }
+
 def evaluate(line: str) -> str:
   stack = []
   for brace in line:
-    if brace in _CLOSE_BRACES:
-      match = _CLOSE_BRACES[brace]
+    if brace in _CLOSE_TO_OPEN:
+      match = _CLOSE_TO_OPEN[brace]
       if not stack or stack[-1] != match:
-        score = _CLOSE_SCORES[brace]
         print(
           line,
-          "Expected {:s} but found {:s} instead. Score {:d}"
-            .format(_OPEN_BRACES[stack[-1]], brace, score))
-        return score
+          "Expected {:s} but found {:s} instead."
+            .format(_OPEN_TO_CLOSE[stack[-1]], brace))
+        return 0
       else:
         stack.pop()
     else:
       stack.append(brace)
   
   if stack:
-    print(line, "Incomplete?")
-    return 0
+    completion = []
+    score = 0
+    while stack:
+      open = stack.pop()
+      close = _OPEN_TO_CLOSE[open]
+      completion.append(close)
+      score *= 5
+      score += _COMPLETION_SCORES[close]
+    print(line, "completed with", ''.join(completion), "Score:", score)
+    return score
   else:
     print(line, "Complete!")
     return 0
@@ -45,8 +60,6 @@ lines = []
 with open(_DATA_FILE, "r") as input:
   lines = input.readlines()
 
-score = 0
-for line in lines:
-  score += evaluate(line.strip())
+scores = filter(lambda x: x > 0, [evaluate(line.strip()) for line in lines])
 
-print("Total score:", score)
+print("Median score:", median(scores))
