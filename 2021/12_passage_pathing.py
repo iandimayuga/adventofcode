@@ -44,20 +44,27 @@ def build_caves(connections: list[str]) -> Cave:
     second_cave = lookup[second_name]
     first_cave.neighbors.append(second_cave)
     second_cave.neighbors.append(first_cave)
+    print("Connecting {:s} to {:s}".format(first_name, second_name))
     
   return start
 
-def explore(cave: Cave, visited: set[str]) -> list[Path]:
+def explore(cave: Cave, visited: set[str], double_visit: bool) -> list[Path]:
   if (cave.name == "end"):
     return [Path(cave)]
 
   visited.add(cave.name)
   paths = []
   for neighbor in cave.neighbors:
-    if (neighbor.name in visited and not neighbor.big):
+    if (neighbor.name == "start"):
       continue
 
-    paths.extend(explore(neighbor, visited.copy()))
+    if (neighbor.name in visited and not neighbor.big):
+      if (not double_visit):
+        paths.extend(explore(neighbor, visited.copy(), True))
+      else:
+        continue
+    else:
+      paths.extend(explore(neighbor, visited.copy(), double_visit))
   
   for path in paths:
     path.record(cave)
@@ -68,7 +75,7 @@ def explore(cave: Cave, visited: set[str]) -> list[Path]:
 with open(_DATA_FILE, "r") as input:
   start = build_caves(input.readlines())
 
-paths = explore(start, set(start.name))
+paths = explore(start, set(start.name), False)
 
 print('\n'.join(str(path) for path in paths))
 print("Count:", len(paths))
