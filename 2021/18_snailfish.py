@@ -4,7 +4,7 @@ import math
 
 _DATA_FILE = "2021/data/test/18_snailfish.txt"
 _MAX_DEPTH = 4
-_MAX_VALUE = 10
+_MAX_VALUE = 9
 
 class NodeType(Enum):
   ROOT = auto()
@@ -84,6 +84,19 @@ class SnailNode:
 
     return self.right._find_first_max_depth(max_depth - 1)
 
+  # Traverses through SnailTree and returns the first leaf SnailNode at max
+  # value.
+  def _find_first_max_value(self, max_value: int) -> "SnailNode":
+    if (self.value is not None):
+      return self if self.value > max_value else None
+    
+    left_max_value = self.left._find_first_max_value(max_value)
+
+    if (left_max_value is not None):
+      return left_max_value
+
+    return self.right._find_first_max_value(max_value)
+
   # Reduces the SnailTree by exploding and splitting as necessary.
   def reduce(self) -> None:
     nest_level = 0
@@ -107,6 +120,6 @@ for number in snail_numbers:
   node = SnailNode(number, None, NodeType.ROOT)
   print()
   print(node)
-  node._find_first_max_depth(_MAX_DEPTH).explode()
+  node._find_first_max_value(_MAX_VALUE).split()
   print(node)
   
