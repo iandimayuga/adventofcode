@@ -1,6 +1,7 @@
 from ast import literal_eval
 from enum import Enum, auto
 import math
+from typing import Union
 
 _DATA_FILE = "2021/data/18_snailfish.txt"
 _MAX_DEPTH = 4
@@ -119,6 +120,11 @@ class SnailNode:
       return self.value
     return self.left.magnitude() * _LEFT_MAGNITUDE_MULTIPLIER \
       + self.right.magnitude() * _RIGHT_MAGNITUDE_MULTIPLIER
+
+  def list_representation(self) -> Union[list, int]:
+    if (self.value is not None):
+      return self.value
+    return [self.left.list_representation(), self.right.list_representation()]
   
   def __repr__(self) -> str:
     if (self.value is None):
@@ -137,7 +143,7 @@ total_snail = SnailNode(snail_numbers[0], None, NodeType.ROOT)
 print("First:", total_snail)
 
 for number in snail_numbers[1:]:
-  new_list = [literal_eval(total_snail.__repr__()), number]
+  new_list = [total_snail.list_representation(), number]
   total_snail = SnailNode(new_list, None, NodeType.ROOT)
   print("Added:", total_snail)
   total_snail.reduce()
