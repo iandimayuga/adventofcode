@@ -1,35 +1,59 @@
 import math
-from functools import total_ordering
 import heapq
 
 _DATA_FILE = "2021/data/15_chiton.txt"
+_REPEATS = 5
+_MAX_RISK = 9
 
-@total_ordering
 class Location:
   def __init__(self) -> None:
     self.x = -1
     self.y = -1
     self.risk = 0
-    self.neighbors = []
     self.visited = False
     self.distance = math.inf
 
   def __eq__(self, __o: "Location") -> bool:
-    return self.distance == __o.distance
-  
+    return (self.x, self.y) == (__o.x, __o.y)
+
   def __lt__(self, __o: "Location") -> bool:
     return self.distance < __o.distance
+  
+  def __hash__(self) -> int:
+    return hash((self.x, self.y))
+  
+
+# Risk wraps back to 1, not 0 so we can't just use mod.
+def wrap_risk(risk: int) -> int:
+  return ((risk - 1) % _MAX_RISK) + 1
+
+def get_neighbors(grid: list[list[Location]], grid_width: int, grid_height: int, location: Location) -> list[Location]:
+  neighbors = []
+  x = location.x
+  y = location.y
+  if (x > 0):
+    neighbors.append(grid[x - 1][y])
+  if (x < grid_width - 1):
+    neighbors.append(grid[x + 1][y])
+  if (y > 0):
+    neighbors.append(grid[x][y - 1])
+  if (y < grid_width - 1):
+    neighbors.append(grid[x][y + 1])
+
+  return neighbors
 
 lines = []
 with open(_DATA_FILE, "r") as input:
   lines = input.readlines()
 
-height = len(lines)
-width = len(lines[0].strip())
-grid = [[Location() for y in range(height)] for x in range(width)]
+cell_height = len(lines)
+cell_width = len(lines[0].strip())
+grid_height = cell_height * _REPEATS
+grid_width = cell_width * _REPEATS
+grid = [[Location() for y in range(grid_height)] for x in range(grid_width)]
 
 # Dijkstra's with a minheap.
-shortest_heap = []
+distance_heap = []
 
 y = 0
 for row in lines:
@@ -38,38 +62,44 @@ for row in lines:
     if (not char.isdigit()):
       continue
 
-    location = grid[x][y]
-    location.x = x
-    location.y = y
-    location.risk = int(char)
-    # Add the two neighbors that come after this location.
-    # The previous two neighbors would have already added this one.
-    if (x < width - 1):
-      right = grid[x + 1][y]
-      location.neighbors.append(right)
-      right.neighbors.append(location)
-    if (y < height - 1):
-      bottom = grid[x][y + 1]
-      location.neighbors.append(bottom)
-      bottom.neighbors.append(location)
+    risk = int(char)
 
-    if (x > 0 or y > 0):
-      heapq.heappush(shortest_heap, location)
+    for cell_x in range(_REPEATS):
+      for cell_y in range(_REPEATS):
+        grid_x = x + (cell_width * cell_x)
+        grid_y = y + (cell_height * cell_y)
+        location = grid[grid_x][grid_y]
+        location.x = grid_x
+        location.y = grid_y
+        location.risk = wrap_risk(risk + cell_x + cell_y)
 
     x += 1
   y += 1
 
 current = grid[0][0]
 current.distance = 0
-destination = grid[width - 1][height - 1]
+destination = grid[grid_width - 1][grid_height - 1]
+shortest_set = set()
+in_heap = set()
 
 # Do the Dijkstra's.
-while destination.distance == math.inf and shortest_heap:
-  for neighbor in current.neighbors:
-    distance = current.distance + neighbor.risk
-    neighbor.distance = min(neighbor.distance, distance)
+while destination.distance == math.inf:
+  shortest_set.add(current)
+  for neighbor in get_neighbors(grid, grid_width, grid_height, current):
+    if (neighbor not in shortest_set):
+      distance = current.distance + neighbor.risk
+      neighbor.distance = min(neighbor.distance, distance)
 
-  heapq.heapify(shortest_heap)
-  current = heapq.heappop(shortest_heap)
+      if (neighbor not in in_heap):
+        heapq.heappush(distance_heap, (neighbor.distance, neighbor))
+        in_heap.add(neighbor)
 
+
+  heapq.heapify(distance_heap)
+  current = heapq.heappop(distance_heap)[1]
+  if (current == destination):
+    break
+  print("Heap size:", len(distance_heap), end='\r')
+
+print()
 print("Shortest distance:", destination.distance)
