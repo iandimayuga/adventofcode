@@ -1,5 +1,6 @@
 from ast import literal_eval
 from enum import Enum, auto
+import math
 
 _DATA_FILE = "2021/data/test/18_snailfish.txt"
 _MAX_DEPTH = 4
@@ -26,63 +27,50 @@ class SnailNode:
     self.parent = parent
     self.type = node_type
 
-  # Propagates the left SnailNode's values to the left and right,
-  # and replaces it with a 0.
-  def explode_left(self) -> None:
-    self.left = self._explode_node(self.left)
-
-  # Propagates the right SnailNode's values to the left and right,
-  # and replaces it with a 0.
-  def explode_right(self) -> None:
-    self.right = self._explode_node(self.right)
-  
-  # Propagates the SnailNode's values to the left and right in the tree.
-  def _explode_node(self, node: "SnailNode") -> "SnailNode":
-    if (node.type == NodeType.LEFT):
+  # Propagates the SnailNode's values to the left and right in the tree and
+  # replaces itself with a 0.
+  def explode(self) -> None:
+    if (self.type == NodeType.LEFT):
       # Propagate left number to the left.
-      current = node.parent
+      current = self.parent
       while current.type == NodeType.LEFT:
         current = current.parent
       if (current.type == NodeType.RIGHT):
         current = current.parent
         while current.value is None:
           current = current.right
-        current.value += node.left.value
+        current.value += self.left.value
       # Propagate right number to the right.
-      current = node.parent.right
+      current = self.parent.right
       while current.value is None:
         current = current.left
-      current.value += node.right.value
-    elif (node.type == NodeType.RIGHT):
+      current.value += self.right.value
+    elif (self.type == NodeType.RIGHT):
       # Propagate right number to the right.
-      current = node.parent
+      current = self.parent
       while current.type == NodeType.LEFT:
         current = current.parent
       if (current.type == NodeType.RIGHT):
         current = current.parent
         while current.value is None:
           current = current.left
-        current.value += node.right.value
+        current.value += self.right.value
       # Propagate left number to the left.
-      current = node.parent.left
+      current = self.parent.left
       while current.value is None:
         current = current.right
-      current.value += node.left.value
+      current.value += self.left.value
 
-    return SnailNode(0, self, node.type)
+    self.left = None
+    self.right = None
+    self.value = 0
     
-
-  # Splits the left value into a SnailNode of two halves.
-  def split_left(self) -> None:
-    self.left = self._split_value(self.left, NodeType.LEFT)
-
-  # Splits the right value into a SnailNode of two halves.
-  def split_right(self) -> None:
-    self.right = self._split_value(self.right, NodeType.RIGHT)
-
-  # Splits a value into a SnailNode, assigns its parent, and returns it.
-  def _split_value(self, node: "SnailNode", type: NodeType) -> "SnailNode":
-    return SnailNode([node.value / 2, node.value / 2 + 1], self, type)
+  # Splits a value node to left and right, rounding down and up respectively.
+  def split(self) -> None:
+    half = self.value / 2
+    self.left = SnailNode(math.floor(half), self, NodeType.LEFT)
+    self.right = SnailNode(math.ceil(half), self, NodeType.RIGHT)
+    self.value = None
 
   # Traverses through SnailTree and returns the first SnailNode at max depth.
   def _find_max_depth(self, max_depth: int) -> "SnailNode":
@@ -110,5 +98,7 @@ snail_numbers = [literal_eval(line) for line in lines]
 node = SnailNode(snail_numbers[0], None, NodeType.ROOT)
 print()
 print(node)
-node.left.left.left.explode_left()
+node.left.left.left.left.explode()
+print(node)
+node.left.left.right.split()
 print(node)
