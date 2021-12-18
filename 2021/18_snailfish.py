@@ -2,6 +2,7 @@ from ast import literal_eval
 from enum import Enum, auto
 import math
 from typing import Union
+import itertools
 
 _DATA_FILE = "2021/data/18_snailfish.txt"
 _MAX_DEPTH = 4
@@ -139,6 +140,7 @@ with open(_DATA_FILE, "r") as input:
 # I <3 Python
 snail_numbers = [literal_eval(line) for line in lines]
 
+# Part 1
 total_snail = SnailNode(snail_numbers[0], None, NodeType.ROOT)
 print("First:", total_snail)
 
@@ -150,3 +152,17 @@ for number in snail_numbers[1:]:
   print("Reduced:", total_snail)
   
 print("Total magnitude:", total_snail.magnitude())
+
+# Part 2
+max_magnitude = 0
+for pair in itertools.permutations(snail_numbers, 2):
+  pair_list = [pair[0], pair[1]]
+  sum_snail = SnailNode([pair[0], pair[1]], None, NodeType.ROOT)
+  sum_snail.reduce()
+  magnitude = sum_snail.magnitude()
+  if (magnitude > max_magnitude):
+    max_pair_list = pair_list
+    max_magnitude = magnitude
+
+print("Max snail:", pair_list)
+print("Max magnitude:", max_magnitude)
