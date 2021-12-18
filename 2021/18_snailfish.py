@@ -99,8 +99,17 @@ class SnailNode:
 
   # Reduces the SnailTree by exploding and splitting as necessary.
   def reduce(self) -> None:
-    nest_level = 0
     while True:
+      max_depth_node = self._find_first_max_depth(_MAX_DEPTH)
+      if (max_depth_node is not None):
+        max_depth_node.explode()
+        continue
+
+      max_value_node = self._find_first_max_value(_MAX_VALUE)
+      if (max_value_node is not None):
+        max_value_node.split()
+        continue
+
       break
   
   def __repr__(self) -> str:
@@ -116,10 +125,13 @@ with open(_DATA_FILE, "r") as input:
 # I <3 Python
 snail_numbers = [literal_eval(line) for line in lines]
 
-for number in snail_numbers:
-  node = SnailNode(number, None, NodeType.ROOT)
-  print()
-  print(node)
-  node._find_first_max_value(_MAX_VALUE).split()
-  print(node)
+total_snail = SnailNode(snail_numbers[0], None, NodeType.ROOT)
+print("First:", total_snail)
+
+for number in snail_numbers[1:]:
+  new_list = [literal_eval(total_snail.__repr__()), number]
+  total_snail = SnailNode(new_list, None, NodeType.ROOT)
+  print("Added:", total_snail)
+  total_snail.reduce()
+  print("Reduced:", total_snail)
   
