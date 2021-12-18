@@ -30,36 +30,33 @@ class SnailNode:
   # Propagates the SnailNode's values to the left and right in the tree and
   # replaces itself with a 0.
   def explode(self) -> None:
+    left_leaf_search = None
+    right_leaf_search = None
     if (self.type == NodeType.LEFT):
-      # Propagate left number to the left.
-      current = self.parent
-      while current.type == NodeType.LEFT:
-        current = current.parent
-      if (current.type == NodeType.RIGHT):
-        current = current.parent
-        while current.value is None:
-          current = current.right
-        current.value += self.left.value
-      # Propagate right number to the right.
-      current = self.parent.right
-      while current.value is None:
-        current = current.left
-      current.value += self.right.value
-    elif (self.type == NodeType.RIGHT):
-      # Propagate right number to the right.
-      current = self.parent
-      while current.type == NodeType.LEFT:
-        current = current.parent
-      if (current.type == NodeType.RIGHT):
-        current = current.parent
-        while current.value is None:
-          current = current.left
-        current.value += self.right.value
-      # Propagate left number to the left.
-      current = self.parent.left
-      while current.value is None:
-        current = current.right
-      current.value += self.left.value
+      left_parent_search = self.parent
+      while (left_parent_search.type == NodeType.LEFT):
+        left_parent_search = left_parent_search.parent
+      if (left_parent_search.type == NodeType.RIGHT):
+        left_leaf_search = left_parent_search.parent.left
+      right_leaf_search = self.parent.right
+    
+    if (self.type == NodeType.RIGHT):
+      right_parent_search = self.parent
+      while (right_parent_search.type == NodeType.RIGHT):
+        right_parent_search = right_parent_search.parent
+      if (right_parent_search.type == NodeType.LEFT):
+        right_leaf_search = right_parent_search.parent.right
+      left_leaf_search = self.parent.left
+
+    if (left_leaf_search is not None):
+      while (left_leaf_search.value is None):
+        left_leaf_search = left_leaf_search.right
+      left_leaf_search.value += self.left.value
+    
+    if (right_leaf_search is not None):
+      while (right_leaf_search.value is None):
+        right_leaf_search = right_leaf_search.left
+      right_leaf_search.value += self.right.value
 
     self.left = None
     self.right = None
@@ -72,9 +69,20 @@ class SnailNode:
     self.right = SnailNode(math.ceil(half), self, NodeType.RIGHT)
     self.value = None
 
-  # Traverses through SnailTree and returns the first SnailNode at max depth.
-  def _find_max_depth(self, max_depth: int) -> "SnailNode":
-    pass
+  # Traverses through SnailTree and returns the first non-leaf SnailNode at max
+  # depth.
+  def _find_first_max_depth(self, max_depth: int) -> "SnailNode":
+    if (self.value is not None):
+      return None
+    if (max_depth <= 0):
+      return self
+    
+    left_max_depth = self.left._find_first_max_depth(max_depth - 1)
+
+    if (left_max_depth is not None):
+      return left_max_depth
+
+    return self.right._find_first_max_depth(max_depth - 1)
 
   # Reduces the SnailTree by exploding and splitting as necessary.
   def reduce(self) -> None:
@@ -95,10 +103,10 @@ with open(_DATA_FILE, "r") as input:
 # I <3 Python
 snail_numbers = [literal_eval(line) for line in lines]
 
-node = SnailNode(snail_numbers[0], None, NodeType.ROOT)
-print()
-print(node)
-node.left.left.left.left.explode()
-print(node)
-node.left.left.right.split()
-print(node)
+for number in snail_numbers:
+  node = SnailNode(number, None, NodeType.ROOT)
+  print()
+  print(node)
+  node._find_first_max_depth(_MAX_DEPTH).explode()
+  print(node)
+  
