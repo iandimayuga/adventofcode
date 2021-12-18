@@ -2,9 +2,11 @@ from ast import literal_eval
 from enum import Enum, auto
 import math
 
-_DATA_FILE = "2021/data/test/18_snailfish.txt"
+_DATA_FILE = "2021/data/18_snailfish.txt"
 _MAX_DEPTH = 4
 _MAX_VALUE = 9
+_LEFT_MAGNITUDE_MULTIPLIER = 3
+_RIGHT_MAGNITUDE_MULTIPLIER = 2
 
 class NodeType(Enum):
   ROOT = auto()
@@ -112,6 +114,12 @@ class SnailNode:
 
       break
   
+  def magnitude(self) -> int:
+    if (self.value is not None):
+      return self.value
+    return self.left.magnitude() * _LEFT_MAGNITUDE_MULTIPLIER \
+      + self.right.magnitude() * _RIGHT_MAGNITUDE_MULTIPLIER
+  
   def __repr__(self) -> str:
     if (self.value is None):
       return "[{:s},{:s}]".format(str(self.left), str(self.right))
@@ -135,3 +143,4 @@ for number in snail_numbers[1:]:
   total_snail.reduce()
   print("Reduced:", total_snail)
   
+print("Total magnitude:", total_snail.magnitude())
