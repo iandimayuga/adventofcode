@@ -53,11 +53,14 @@ with open(_DATA_FILE, "r") as input:
 
 commands = [Command(line.strip()) for line in lines]
 bounds = [set() for i in range(3)]
+constrained_grid = BoundingBox([range(_GRID_MIN, _GRID_MAX + 1)]*3)
 for command in commands:
   print(command)
-  for (bound, interval) in zip(bounds, command.bbox.intervals):
-    bound.add(interval.start)
-    bound.add(interval.stop)
+  constrained_bbox = command.bbox.intersection(constrained_grid)
+  if (constrained_bbox):
+    for (bound, interval) in zip(bounds, constrained_bbox.intervals):
+      bound.add(interval.start)
+      bound.add(interval.stop)
 
 x_bounds = sorted(bounds[0])
 y_bounds = sorted(bounds[1])
