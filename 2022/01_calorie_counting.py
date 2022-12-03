@@ -1,5 +1,5 @@
-
 _DATA_FILE = "2022/data/01_calorie_counting.txt"
+_NUM_TOP_ELVES = 3
 
 class Bag:
   def __init__(self) -> None:
@@ -18,6 +18,8 @@ with open(_DATA_FILE, "r") as input:
 # Start with one empty elf bag.
 elf_bags = [Bag()]
 
+top_calorie_counts = [0] * _NUM_TOP_ELVES
+
 for line in lines:
   # Fill the latest bag. At blank lines start a new bag.
   latest_bag = elf_bags[-1]
@@ -25,11 +27,14 @@ for line in lines:
     latest_bag.add_item(int(line))
     print("Adding food: " + line)
   else:
+    total = latest_bag.total_calories()
     print("Finished bag: {bag:s} = {sum:d}".format(
       bag = '+'.join([str(item) for item in latest_bag.food_items]),
-      sum = latest_bag.total_calories()))
+      sum = total))
+    if (total > top_calorie_counts[0]):
+      print("Top elf!")
+      top_calorie_counts[0] = total
+      top_calorie_counts.sort()
     elf_bags.append(Bag())
 
-max_calories = max([bag.total_calories() for bag in elf_bags])
-
-print(max_calories)
+print(sum(top_calorie_counts))
