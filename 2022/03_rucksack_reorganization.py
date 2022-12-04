@@ -3,6 +3,8 @@ _DATA_FILE = "2022/data/03_rucksack_reorganization.txt"
 _LOWERCASE_LETTER_PRIORITY_A = 1
 _UPPERCASE_LETTER_PRIORITY_A = 27
 
+_GROUP_SIZE = 3
+
 def letter_priority(letter: str) -> int:
   if letter.islower():
     return ord(letter) - ord('a') + _LOWERCASE_LETTER_PRIORITY_A
@@ -21,16 +23,18 @@ rucksacks = []
 with open(_DATA_FILE, "r") as input:
   rucksacks = [[c for c in line.strip()] for line in input]
 
+# Break the rucksacks into groups.
+rucksack_groups = [rucksacks[i:i + _GROUP_SIZE]
+                    for i in range(0, len(rucksacks), _GROUP_SIZE)]
+
 sum = 0
 
-for rucksack in rucksacks:
-  halves = compartments(rucksack)
-  dup = common_letters([halves[0], halves[1]])[0]
-  priority = letter_priority(dup)
-  print("dup:'{dup:s}' pri:{pri:02d}\t{left:s}|{right:s} ".format(
-    left = ','.join(halves[0]),
-    right = ','.join(halves[1]),
-    dup = dup,
+for rucksack_group in rucksack_groups:
+  badge = common_letters(rucksack_group)[0]
+  priority = letter_priority(badge)
+  print("badge:'{badge:s}' pri:{pri:02d}\t{group:s} ".format(
+    group = ' '.join([''.join(rucksack) for rucksack in rucksack_group]),
+    badge = badge,
     pri = priority
   ))
   sum += priority
