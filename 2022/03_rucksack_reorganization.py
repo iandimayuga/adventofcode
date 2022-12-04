@@ -1,6 +1,3 @@
-from ast import Set
-
-
 _DATA_FILE = "2022/data/03_rucksack_reorganization.txt"
 
 _LOWERCASE_LETTER_PRIORITY_A = 1
@@ -15,8 +12,10 @@ def compartments(rucksack: list[str]) -> tuple[list[str], list[str]]:
   middle = int(len(rucksack) / 2)
   return (rucksack[middle:], rucksack[:middle])
 
-def duplicate(left: list[str], right: list[str]) -> str:
-  return next(iter(set(left).intersection(set(right))))
+def common_letters(rucksacks: list[list[str]]) -> list[str]:
+  return list(set.intersection(
+    *[set(rucksack) for rucksack in rucksacks]))
+
 
 rucksacks = []
 with open(_DATA_FILE, "r") as input:
@@ -26,7 +25,7 @@ sum = 0
 
 for rucksack in rucksacks:
   halves = compartments(rucksack)
-  dup = duplicate(halves[0], halves[1])
+  dup = common_letters([halves[0], halves[1]])[0]
   priority = letter_priority(dup)
   print("dup:'{dup:s}' pri:{pri:02d}\t{left:s}|{right:s} ".format(
     left = ','.join(halves[0]),
