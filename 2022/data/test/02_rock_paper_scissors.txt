@@ -1,3 +1,9 @@
 A Y
 B X
 C Z
+A X
+B Z
+C Y
+A Z
+B Y
+C X
