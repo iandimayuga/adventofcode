@@ -63,7 +63,7 @@ for i in range(moves_top, len(lines)):
   src = int(move_words[3]) - 1
   dst = int(move_words[5]) - 1
   moved = stacks[src].pop(num)
-  stacks[dst].push(moved)
+  stacks[dst].push(reversed(moved))
 
 for stack in stacks:
   print(str(stack))
