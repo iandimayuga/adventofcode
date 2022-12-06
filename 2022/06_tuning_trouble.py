@@ -1,6 +1,6 @@
 from collections import Counter
 
-_DATA_FILE = "2022/data/06.txt"
+_DATA_FILE = "2022/data/06_tuning_trouble.txt"
 
 _WINDOW_SIZE = 14
 
