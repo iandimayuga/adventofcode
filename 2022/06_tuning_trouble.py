@@ -1,5 +1,3 @@
-from collections import Counter
-
 _DATA_FILE = "2022/data/06_tuning_trouble.txt"
 
 _WINDOW_SIZE = 14
@@ -12,8 +10,8 @@ print(chars)
 
 for start in range(len(chars) - _WINDOW_SIZE):
   end = start + _WINDOW_SIZE
-  keys = Counter(chars[start : end]).keys()
+  charset = set(chars[start : end])
   print(chars[start : end])
-  if len(keys) >= _WINDOW_SIZE:
+  if len(charset) >= _WINDOW_SIZE:
     print(end)
     break
