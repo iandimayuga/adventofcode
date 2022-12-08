@@ -1,5 +1,4 @@
 import re
-from tkinter import W
 
 _DATA_FILE = "2022/data/07_no_space_left_on_device.txt"
 
