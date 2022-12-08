@@ -10,6 +10,7 @@ _DIRECTORY_REGEX = re.compile(r"^dir (?P<dirname>.*)$")
 _FILE_REGEX = re.compile(r"^(?P<size>\d+) (?P<filename>.*)$")
 
 _MAX_DIR_SIZE_TO_COUNT = 100000
+_MAX_TOTAL_SPACE = 40000000
 
 class Directory:
   def __init__(self, parent: "Directory", name: str, depth: int) -> None:
@@ -103,3 +104,9 @@ print("Total size of dirs over {max:d}: {total:d}".format(
   max = _MAX_DIR_SIZE_TO_COUNT,
   total = sum([dir.size() for dir in all_dirs if dir.size() <= _MAX_DIR_SIZE_TO_COUNT])
 ))
+
+# Find the smallest directory to delete to recover the required size.
+print("Total size taken up: {size:d}".format(size = root.size()))
+min_size_to_delete = root.size() - _MAX_TOTAL_SPACE
+size_to_delete = min([dir.size() for dir in all_dirs if dir.size() >= min_size_to_delete])
+print("Size of directory to delete: {size: d}".format(size = size_to_delete))
