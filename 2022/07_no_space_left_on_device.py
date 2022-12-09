@@ -17,22 +17,15 @@ class Directory:
     self.parent = parent
     self.depth = depth
     self.children = {}
-    self.dir_size = 0
-    self.is_size_cached = False
 
   def add(self, child: "Directory") -> None:
-    self.is_size_cached = False
     self.children[child.name] = child
 
   def add(self, child: "File") -> None:
-    self.is_size_cached = False
     self.children[child.name] = child
 
   def size(self) -> int:
-    if not self.is_size_cached:
-      self.dir_size = sum([child.size() for child in self.children.values()])
-      self.is_size_cached = True
-    return self.dir_size
+    return sum([child.size() for child in self.children.values()])
 
   def __str__(self) -> str:
     return "{pad:s}- {name:s} (dir)\n{children:s}".format(
