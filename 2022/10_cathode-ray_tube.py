@@ -1,10 +1,11 @@
-_DATA_FILE = "2022/data/10_cathode-ray_tube.txt"
+_DATA_FILE = "2022/data/test/10_cathode-ray_tube.txt"
 _ADDX_CMD = "addx"
 _NOOP_CMD = "noop"
 _ADDX_CYCLES = 2
 _NOOP_CYCLES = 1
-_CYCLE_MOD = 40
-_CYCLE_MOD_OFFSET = 20
+_SCREEN_WIDTH = 40
+_SCREEN_HEIGHT = 6
+_SPRITE_RADIUS = 1
 
 class Operation:
   def __init__(self, add: int, cycles: int) -> None:
@@ -28,8 +29,7 @@ with open(_DATA_FILE, "r") as inputfile:
 cycle = 0
 register_x = 1
 operation = Operation(0, 0)
-strength_sum = 0
-line_num = 1
+screen = [['.' for x in range(_SCREEN_WIDTH)] for y in range(_SCREEN_HEIGHT)]
 
 for line in lines:
   command = line.split(' ')
@@ -40,11 +40,13 @@ for line in lines:
   while operation.pending():
     cycle += 1
     register_x += operation.add_cycle()
-    if (cycle % _CYCLE_MOD == _CYCLE_MOD_OFFSET - 1):
-      strength = (cycle + 1) * register_x
-      strength_sum += strength
-      print("Line:{l:d} Cycle:{c:d} * X:{x:d} = Strength:{s:d}".format(
-        l = line_num, c = cycle + 1, x = register_x, s = strength))
-  line_num += 1
+    row = int(cycle / _SCREEN_WIDTH)
+    column = cycle % _SCREEN_WIDTH
+    if column >= register_x - _SPRITE_RADIUS and column <= register_x + _SPRITE_RADIUS:
+      screen[row][column] = '#'
 
-print("Total: {s:d}".format(s = strength_sum))
+for row in screen:
+  for char in row:
+    print(char, end='')
+  print()
+
