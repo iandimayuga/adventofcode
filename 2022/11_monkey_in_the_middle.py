@@ -1,9 +1,9 @@
 from math import prod
 from typing import Callable
 
-_DEBUG = True
+_DEBUG = False
+_MODULUS = 23 * 19 * 13 * 17 if _DEBUG else 17 * 7 * 13 * 2 * 19 * 3 * 5 * 11
 
-_WORRY_DECAY_RATE = 3
 _NUM_ROUNDS = 10000
 _NUM_MOST_ACTIVE = 2
 
@@ -19,7 +19,6 @@ class Monkey:
     items: list[Item],
     operation: Callable[[int], int],
     test: Callable[[int], bool],
-    modulus: int,
     true_monkey: int,
     false_monkey: int
   ) -> None:
@@ -28,7 +27,6 @@ class Monkey:
     self.items = items
     self.operation = operation
     self.test = test
-    self.modulus = modulus
     self.true_monkey = true_monkey
     self.false_monkey = false_monkey
     self.total_inspections = 0
@@ -50,7 +48,7 @@ class Monkey:
     # print("    Worry updated to {w:d}".format(w = item.worry))
 
     # Apply modulus.
-    item.worry = int(item.worry % self.modulus)
+    item.worry = int(item.worry % _MODULUS)
     # print("    Worry decays to {w:d}".format(w = item.worry))
 
     # Test worry to determine throw.
@@ -73,7 +71,6 @@ if (_DEBUG):
     [Item(i) for i in [ 79, 98]],
     lambda old: old * 19,
     lambda worry: worry % 23 == 0,
-      23,
       2,
       3))
 
@@ -81,7 +78,6 @@ if (_DEBUG):
     [Item(i) for i in [ 54, 65, 75, 74]],
     lambda old: old + 6,
     lambda worry: worry % 19 == 0,
-      19,
       2,
       0))
 
@@ -89,7 +85,6 @@ if (_DEBUG):
     [Item(i) for i in [ 79, 60, 97]],
     lambda old: old * old,
     lambda worry: worry % 13 == 0,
-      13,
       1,
       3))
 
@@ -97,7 +92,6 @@ if (_DEBUG):
     [Item(i) for i in [ 74]],
     lambda old: old + 3,
     lambda worry: worry % 17 == 0,
-      17,
       0,
       1))
 else: 
@@ -105,7 +99,6 @@ else:
     [Item(i) for i in [ 89, 74]],
     lambda old: old * 5,
     lambda worry: worry % 17 == 0,
-      17,
       4,
       7))
 
@@ -113,7 +106,6 @@ else:
     [Item(i) for i in [ 75, 69, 87, 57, 84, 90, 66, 50]],
     lambda old: old + 3,
     lambda worry: worry % 7 == 0,
-      7,
       3,
       2))
 
@@ -121,7 +113,6 @@ else:
     [Item(i) for i in [ 55]],
     lambda old: old + 7,
     lambda worry: worry % 13 == 0,
-      13,
       0,
       7))
 
@@ -129,7 +120,6 @@ else:
     [Item(i) for i in [ 69, 82, 69, 56, 68]],
     lambda old: old + 5,
     lambda worry: worry % 2 == 0,
-      2,
       0,
       2))
 
@@ -137,7 +127,6 @@ else:
     [Item(i) for i in [ 72, 97, 50]],
     lambda old: old + 2,
     lambda worry: worry % 19 == 0,
-      19,
       6,
       5))
 
@@ -145,7 +134,6 @@ else:
     [Item(i) for i in [ 90, 84, 56, 92, 91, 91]],
     lambda old: old * 19,
     lambda worry: worry % 3 == 0,
-      3,
       6,
       1))
 
@@ -153,7 +141,6 @@ else:
     [Item(i) for i in [ 63, 93, 55, 53]],
     lambda old: old * old,
     lambda worry: worry % 5 == 0,
-      5,
       3,
       1))
 
@@ -161,7 +148,6 @@ else:
     [Item(i) for i in [ 50, 61, 52, 58, 86, 68, 97]],
     lambda old: old + 4,
     lambda worry: worry % 11 == 0,
-      11,
       5,
       4))
 
