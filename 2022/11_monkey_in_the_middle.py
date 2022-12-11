@@ -1,8 +1,9 @@
 from math import prod
+import re
 from typing import Callable
 
-_DEBUG = False
-_MODULUS = 23 * 19 * 13 * 17 if _DEBUG else 17 * 7 * 13 * 2 * 19 * 3 * 5 * 11
+_DATA_FILE = "2022/data/11_monkey_in_the_middle.txt"
+_MONKEY_LINES = 7
 
 _NUM_ROUNDS = 10000
 _NUM_MOST_ACTIVE = 2
@@ -11,24 +12,30 @@ class Item:
   def __init__(self, worry: int) -> None:
     self.worry = worry
 
+class Modulus:
+  def __init__(self) -> None:
+    self.modulus = 1
+
 class Monkey:
   def __init__(
     self,
     monkeys: list["Monkey"],
+    global_modulus: Modulus,
     index: int,
     items: list[Item],
     operation: Callable[[int], int],
     test: Callable[[int], bool],
-    true_monkey: int,
-    false_monkey: int
+    true_monkey_index: int,
+    false_monkey_index: int
   ) -> None:
     self.monkeys = monkeys
+    self.global_modulus = global_modulus
     self.index = index
     self.items = items
     self.operation = operation
     self.test = test
-    self.true_monkey = true_monkey
-    self.false_monkey = false_monkey
+    self.true_monkey_index = true_monkey_index
+    self.false_monkey_index = false_monkey_index
     self.total_inspections = 0
   
   def turn(self):
@@ -48,13 +55,13 @@ class Monkey:
     # print("    Worry updated to {w:d}".format(w = item.worry))
 
     # Apply modulus.
-    item.worry = int(item.worry % _MODULUS)
+    item.worry = int(item.worry % self.global_modulus.modulus)
     # print("    Worry decays to {w:d}".format(w = item.worry))
 
     # Test worry to determine throw.
     if self.test(item.worry):
-      return self.monkeys[self.true_monkey]
-    return self.monkeys[self.false_monkey]
+      return self.monkeys[self.true_monkey_index]
+    return self.monkeys[self.false_monkey_index]
 
   def throw(self, item: Item, monkey: "Monkey"):
     # print("    Item with worry {w:d} thrown to monkey {i:d}".format(
@@ -65,92 +72,38 @@ class Monkey:
 
 monkeys: list[Monkey]
 monkeys = []
+global_modulus = Modulus()
 
-if (_DEBUG):
-  monkeys.append(Monkey(monkeys, 0,
-    [Item(i) for i in [ 79, 98]],
-    lambda old: old * 19,
-    lambda worry: worry % 23 == 0,
-      2,
-      3))
+def parse_monkey(lines: list[str]) -> Monkey:
+  index = int(re.compile(r"Monkey (\d+)").match(lines[0]).group(1))
+  items = [Item(int(w)) for w in
+    re.compile(r"Starting items: (.+)").match(lines[1]).group(1).split(', ')
+  ]
+  operation = lambda old: eval(
+    re.compile(r"Operation: new = (.+)").match(lines[2]).group(1)
+  )
+  local_modulus = int(
+    re.compile(r"Test: divisible by (\d+)").match(lines[3]).group(1)
+  )
+  test = lambda worry: worry % local_modulus == 0
+  true_monkey_index = int(
+    re.compile(r"If true: throw to monkey (\d+)").match(lines[4]).group(1)
+  )
+  false_monkey_index = int(
+    re.compile(r"If false: throw to monkey (\d+)").match(lines[5]).group(1)
+  )
 
-  monkeys.append(Monkey(monkeys, 1,
-    [Item(i) for i in [ 54, 65, 75, 74]],
-    lambda old: old + 6,
-    lambda worry: worry % 19 == 0,
-      2,
-      0))
+  # Need a global modulus to keep all operations equivalent.
+  global_modulus.modulus *= local_modulus
 
-  monkeys.append(Monkey(monkeys, 2,
-    [Item(i) for i in [ 79, 60, 97]],
-    lambda old: old * old,
-    lambda worry: worry % 13 == 0,
-      1,
-      3))
+  return Monkey(monkeys, global_modulus, index, items, operation, test, true_monkey_index, false_monkey_index)
 
-  monkeys.append(Monkey(monkeys, 3,
-    [Item(i) for i in [ 74]],
-    lambda old: old + 3,
-    lambda worry: worry % 17 == 0,
-      0,
-      1))
-else: 
-  monkeys.append(Monkey(monkeys, 0,
-    [Item(i) for i in [ 89, 74]],
-    lambda old: old * 5,
-    lambda worry: worry % 17 == 0,
-      4,
-      7))
+lines = []
+with open(_DATA_FILE, "r") as inputfile:
+  lines = [line.strip() for line in inputfile]
 
-  monkeys.append(Monkey(monkeys, 1,
-    [Item(i) for i in [ 75, 69, 87, 57, 84, 90, 66, 50]],
-    lambda old: old + 3,
-    lambda worry: worry % 7 == 0,
-      3,
-      2))
-
-  monkeys.append(Monkey(monkeys, 2,
-    [Item(i) for i in [ 55]],
-    lambda old: old + 7,
-    lambda worry: worry % 13 == 0,
-      0,
-      7))
-
-  monkeys.append(Monkey(monkeys, 3,
-    [Item(i) for i in [ 69, 82, 69, 56, 68]],
-    lambda old: old + 5,
-    lambda worry: worry % 2 == 0,
-      0,
-      2))
-
-  monkeys.append(Monkey(monkeys, 4,
-    [Item(i) for i in [ 72, 97, 50]],
-    lambda old: old + 2,
-    lambda worry: worry % 19 == 0,
-      6,
-      5))
-
-  monkeys.append(Monkey(monkeys, 5,
-    [Item(i) for i in [ 90, 84, 56, 92, 91, 91]],
-    lambda old: old * 19,
-    lambda worry: worry % 3 == 0,
-      6,
-      1))
-
-  monkeys.append(Monkey(monkeys, 6,
-    [Item(i) for i in [ 63, 93, 55, 53]],
-    lambda old: old * old,
-    lambda worry: worry % 5 == 0,
-      3,
-      1))
-
-  monkeys.append(Monkey(monkeys, 7,
-    [Item(i) for i in [ 50, 61, 52, 58, 86, 68, 97]],
-    lambda old: old + 4,
-    lambda worry: worry % 11 == 0,
-      5,
-      4))
-
+for i in range(0, len(lines), _MONKEY_LINES):
+  monkeys.append(parse_monkey(lines[i:i+_MONKEY_LINES]))
 
 for i in range(_NUM_ROUNDS):
   for monkey in monkeys:
