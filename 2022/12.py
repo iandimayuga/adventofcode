@@ -2,6 +2,8 @@ import heapq
 import math
 
 _DATA_FILE = "2022/data/12.txt"
+_DEBUG = "/test/" in _DATA_FILE
+
 _LOWEST_HEIGHT_CHAR = 'a'
 _HIGHEST_HEIGHT_CHAR = 'z'
 _SOURCE_CHAR = 'S'
@@ -28,25 +30,28 @@ class Location:
   def __str__(self) -> str:
     return "{x:d},{y:d} '{c:s}'".format(x = self.x, y = self.y, c = self.char)
 
+def can_ascend(from_loc: Location, to_loc: Location) -> bool:
+  return to_loc.height <= from_loc.height + 1
+
 def get_neighbors(grid: list[list[Location]], grid_width: int, grid_height: int, location: Location) -> list[Location]:
   neighbors = []
   x = location.x
   y = location.y
   if (x > 0):
     neighbor = grid[x - 1][y]
-    if neighbor.height <= location.height + 1:
+    if can_ascend(neighbor, location):
       neighbors.append(neighbor)
   if (x < grid_width - 1):
     neighbor = grid[x + 1][y]
-    if neighbor.height <= location.height + 1:
+    if can_ascend(neighbor, location):
       neighbors.append(neighbor)
   if (y > 0):
     neighbor = grid[x][y - 1]
-    if neighbor.height <= location.height + 1:
+    if can_ascend(neighbor, location):
       neighbors.append(neighbor)
   if (y < grid_height - 1):
     neighbor = grid[x][y + 1]
-    if neighbor.height <= location.height + 1:
+    if can_ascend(neighbor, location):
       neighbors.append(neighbor)
 
   return neighbors
@@ -94,19 +99,21 @@ print("Dst: {d:s}".format(d = str(destination)))
 # Dijkstra's with a minheap.
 distance_heap = []
 
-current = source
+current = destination
 current.distance = 0
 shortest_set = set()
 in_heap = set()
 
+found_source = False
+
 # Do the Dijkstra's.
-while destination.distance == math.inf:
+while not found_source:
   shortest_set.add(current)
-  # print("Current: {c:s}".format(c = str(current)))
+  if _DEBUG: print("Current: {c:s}".format(c = str(current)))
   neighbors = get_neighbors(grid, grid_width, grid_height, current)
-  # print("Neighbors: \n  {n:s}".format(
-  #   n = '\n  '.join([str(n) for n in neighbors])
-  # ))
+  if _DEBUG: print("Neighbors: \n  {n:s}".format(
+    n = '\n  '.join([str(n) for n in neighbors])
+  ))
   for neighbor in neighbors:
     if (neighbor not in shortest_set):
       distance = current.distance + 1
@@ -116,20 +123,23 @@ while destination.distance == math.inf:
         heapq.heappush(distance_heap, (neighbor.distance, neighbor))
         in_heap.add(neighbor)
 
-
   heapq.heapify(distance_heap)
-  current = heapq.heappop(distance_heap)[1]
-  if current == destination:
+  if not distance_heap:
+    no_path = True
     break
+  current = heapq.heappop(distance_heap)[1]
+  if current.height == 0:
+    found_source = True
   print("Heap size:", len(distance_heap), end='\r')
 
-for y in range(grid_height):
-  for x in range(grid_width):
-    if grid[x][y].distance == math.inf:
-      print("in ", end='')
-    else:
-      print("{d:02d} ".format(d = grid[x][y].distance), end='')
-  print()
+if _DEBUG:
+  for y in range(grid_height):
+    for x in range(grid_width):
+      if grid[x][y].distance == math.inf:
+        print("in ", end='')
+      else:
+        print("{d:02d} ".format(d = grid[x][y].distance), end='')
+    print()
 
 print()
-print("Shortest distance:", destination.distance)
+print("Shortest distance:", current.distance)
