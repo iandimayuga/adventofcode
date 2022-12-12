@@ -80,14 +80,15 @@ for row in lines:
     location.x = x
     location.y = y
     location.char = char
+
     if char == _SOURCE_CHAR:
-      location.height = 0
+      char = _LOWEST_HEIGHT_CHAR
       source = location
     elif char == _DEST_CHAR:
-      location.height = 25
+      char = _HIGHEST_HEIGHT_CHAR
       destination = location
-    else:
-      location.height = ord(char) - ord(_LOWEST_HEIGHT_CHAR)
+
+    location.height = ord(char) - ord(_LOWEST_HEIGHT_CHAR)
     print("{d:02d} ".format(d = location.height), end='')
     x += 1
   print()
