@@ -1,7 +1,7 @@
 import heapq
 import math
 
-_DATA_FILE = "2022/data/12.txt"
+_DATA_FILE = "2022/data/12_hill_climbing_algorithm.txt"
 _DEBUG = "/test/" in _DATA_FILE
 
 _LOWEST_HEIGHT_CHAR = 'a'
