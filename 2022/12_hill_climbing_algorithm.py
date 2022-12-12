@@ -104,6 +104,7 @@ current.distance = 0
 shortest_set = set()
 in_heap = set()
 
+no_path = False
 found_source = False
 
 # Do the Dijkstra's.
@@ -130,6 +131,7 @@ while not found_source:
   current = heapq.heappop(distance_heap)[1]
   if current.height == 0:
     found_source = True
+    break
   print("Heap size:", len(distance_heap), end='\r')
 
 if _DEBUG:
@@ -142,4 +144,8 @@ if _DEBUG:
     print()
 
 print()
-print("Shortest distance:", current.distance)
+
+if (no_path):
+  print("No path!")
+else:
+  print("Shortest distance:", current.distance)
