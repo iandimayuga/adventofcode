@@ -58,6 +58,7 @@ with open(_DATA_FILE, "r") as inputfile:
 grid_height = len(lines)
 grid_width = len(lines[0])
 print("h:{h:d} w:{w:d}".format(h = grid_height, w = grid_width))
+
 grid = [[Location() for y in range(grid_height)] for x in range(grid_width)]
 
 source: Location
@@ -91,45 +92,76 @@ for row in lines:
 print("Src: {s:s}".format(s = str(source)))
 print("Dst: {d:s}".format(d = str(destination)))
 
-# Dijkstra's with a minheap.
-distance_heap = []
+shortest_distance_from_anywhere = math.inf
 
-current = source
-current.distance = 0
-shortest_set = set()
-in_heap = set()
-
-# Do the Dijkstra's.
-while destination.distance == math.inf:
-  shortest_set.add(current)
-  # print("Current: {c:s}".format(c = str(current)))
-  neighbors = get_neighbors(grid, grid_width, grid_height, current)
-  # print("Neighbors: \n  {n:s}".format(
-  #   n = '\n  '.join([str(n) for n in neighbors])
-  # ))
-  for neighbor in neighbors:
-    if (neighbor not in shortest_set):
-      distance = current.distance + 1
-      neighbor.distance = min(neighbor.distance, distance)
-
-      if (neighbor not in in_heap):
-        heapq.heappush(distance_heap, (neighbor.distance, neighbor))
-        in_heap.add(neighbor)
-
-
-  heapq.heapify(distance_heap)
-  current = heapq.heappop(distance_heap)[1]
-  if current == destination:
-    break
-  print("Heap size:", len(distance_heap), end='\r')
-
+# Iterate through all possible sources.
 for y in range(grid_height):
   for x in range(grid_width):
-    if grid[x][y].distance == math.inf:
-      print("in ", end='')
-    else:
-      print("{d:02d} ".format(d = grid[x][y].distance), end='')
-  print()
+    # Flag if there is no viable path.
+    no_path = False
 
-print()
-print("Shortest distance:", destination.distance)
+    # Only sources with height 0.
+    if grid[x][y].height > 0:
+      continue
+
+    # Reset the distances.
+    for y_ in range(grid_height):
+      for x_ in range(grid_width):
+        grid[x_][y_].distance = math.inf
+
+    source = grid[x][y]
+    print("Src: {s:s}".format(s = str(source)))
+
+    # Dijkstra's with a minheap.
+    distance_heap = []
+
+    current = source
+    current.distance = 0
+    shortest_set = set()
+    in_heap = set()
+
+    # Do the Dijkstra's.
+    while destination.distance == math.inf:
+      shortest_set.add(current)
+      # print("Current: {c:s}".format(c = str(current)))
+      neighbors = get_neighbors(grid, grid_width, grid_height, current)
+      # print("Neighbors: \n  {n:s}".format(
+      #   n = '\n  '.join([str(n) for n in neighbors])
+      # ))
+      for neighbor in neighbors:
+        if (neighbor not in shortest_set):
+          distance = current.distance + 1
+          neighbor.distance = min(neighbor.distance, distance)
+
+          if (neighbor not in in_heap):
+            heapq.heappush(distance_heap, (neighbor.distance, neighbor))
+            in_heap.add(neighbor)
+
+
+      heapq.heapify(distance_heap)
+
+      if not distance_heap:
+        no_path = True
+        break
+
+      current = heapq.heappop(distance_heap)[1]
+      if current == destination:
+        break
+      print("Heap size:", len(distance_heap), end='\r')
+
+    # for y in range(grid_height):
+    #   for x in range(grid_width):
+    #     if grid[x][y].distance == math.inf:
+    #       print("in ", end='')
+    #     else:
+    #       print("{d:02d} ".format(d = grid[x][y].distance), end='')
+    #   print()
+    if no_path:
+      print("No path!")
+      continue
+
+    print("Shortest distance:", destination.distance)
+    print()
+    shortest_distance_from_anywhere = min(shortest_distance_from_anywhere, destination.distance)
+
+print("Shortest distance from anywhere:", shortest_distance_from_anywhere)
