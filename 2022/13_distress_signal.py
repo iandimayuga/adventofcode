@@ -1,7 +1,10 @@
+from functools import cmp_to_key
 
-_DEBUG = True
+_DEBUG = False
 _DATA_FOLDER = "2022/data/test/" if _DEBUG else "2022/data/"
-_DATA_FILE = _DATA_FOLDER + "13.txt"
+_DATA_FILE = _DATA_FOLDER + "13_distress_signal.txt"
+_FIRST_MARKER = [[2]]
+_SECOND_MARKER = [[6]]
 
 def compare(left, right) -> int:
   if isinstance(left, list) and isinstance(right, list):
@@ -43,21 +46,33 @@ lines = []
 with open(_DATA_FILE, "r") as inputfile:
   lines = [line.strip() for line in inputfile]
 
-# Group into pairs, skipping the line break in between.
-pairs = [lines[i:i+2] for i in range(0, len(lines), 3)]
+packets = []
 
-pair_index = 1
-total_right = 0
-for pair in pairs:
-  print("== Pair {i:d} ==".format(i = pair_index))
-  print(pair)
-  comparison = compare(eval(pair[0]), eval(pair[1]))
-  if comparison < 0:
-    print("Wrong order!")
-  elif comparison > 0:
-    total_right += pair_index
-    print("Right order!")
-  print()
-  pair_index += 1
+for line in lines:
+  if line:
+    packets.append(eval(line))
 
-print("Total: ", total_right)
+packets.append(_FIRST_MARKER)
+packets.append(_SECOND_MARKER)
+
+sorted_packets = reversed(sorted(packets, key=cmp_to_key(compare)))
+
+print("Sorted: ")
+
+first_marker_index = 0
+second_marker_index = 0
+i = 1
+
+for packet in sorted_packets:
+  print(packet, end='')
+  if packet == _FIRST_MARKER:
+    print(" First marker!")
+    first_marker_index = i
+  elif packet == _SECOND_MARKER:
+    print(" Second marker!")
+    second_marker_index = i
+  else:
+    print()
+  i += 1
+
+print("Total: ", first_marker_index * second_marker_index)
