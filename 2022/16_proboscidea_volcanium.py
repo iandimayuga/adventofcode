@@ -45,10 +45,10 @@ print('\n'.join([str(valve) for valve in valves.values()]))
 print()
 
 # Memoize the amount of released pressure given a minute, current valve, and set of open valves.
-pressure_cache: dict[tuple[int, str, frozenset[str]], int] = {}
+pressure_cache: dict[str, int] = {}
 
 def max_released_pressure(minute: int, current_valve: str, open_valves: frozenset[str]):
-  key = (minute, current_valve, open_valves)
+  key = "{m:02d}{v:s}{o:s}".format(m =  minute, v = current_valve, o = ''.join(open_valves))
   if key in pressure_cache:
     return pressure_cache[key]
   
