@@ -1,7 +1,7 @@
 import re
 
 _PART = 1
-_DEBUG = False
+_DEBUG = True
 _DATA_FOLDER = "2022/data/test/" if _DEBUG else "2022/data/"
 _DATA_FILE = _DATA_FOLDER + "16_proboscidea_volcanium.txt"
 
@@ -44,31 +44,58 @@ for line in lines:
 print('\n'.join([str(valve) for valve in valves.values()]))
 print()
 
-# Memoize the amount of released pressure given a minute, current valve, and set of open valves.
-pressure_cache: dict[str, int] = {}
+# Dynamic Programming solution
 
-def max_released_pressure(minute: int, current_valve: str, open_valves: frozenset[str]):
-  key = "{m:02d}{v:s}{o:s}".format(m =  minute, v = current_valve, o = ''.join(open_valves))
-  if key in pressure_cache:
-    return pressure_cache[key]
+# Table for if a valve is reachable by a certain minute.
+reach_set: set[str] = set()
+# Table for the open valves and max pressure signed up for
+# while at a certain final valve by a certain minute.
+state_table: dict[str, tuple[int, frozenset[str]]] = {}
+
+def key(valve: str, minute: int):
+  return "{v:s}{m:02d}".format(v = valve, m = minute)
+
+def max_released_pressure():
+  # Only the first valve is reachable in the first minute.
+  first_key = key(_FIRST_VALVE, 0)
+  reach_set.add(first_key)
+  state_table[first_key] = (0, frozenset())
   
-  # Pressure released this minute regardless of action.
-  pressure_released = sum([valves[v].rate for v in open_valves])
+  # Build the table out from the next minute onward.
+  for minute in range(1, _TOTAL_MINUTES):
+    for current_valve in valves.values():
+      current_key = key(current_valve.name, minute)
+      if current_key not in state_table:
+        state_table[current_key] = (0, frozenset())
 
-  # Explore the space of possible actions.
-  max_benefit = 0
+      for previous_valve in valves.values():
+        previous_key = key(previous_valve.name, minute - 1)
+        if (previous_key in reach_set and
+            (current_valve.name == previous_valve.name or current_valve.name in previous_valve.neighbors)
+        ):
+            reach_set.add(key(current_valve.name, minute))
 
-  # No actions possible if this is the last minute.
-  if minute < _TOTAL_MINUTES:
-    # Action: Open current closed valve and stay put.
-    if current_valve not in open_valves:
-      max_benefit = max_released_pressure(minute + 1, current_valve, open_valves | set([current_valve]))
+            previous_pressure = state_table[previous_key][0]
+            open_valves = state_table[previous_key][1]
 
-    # Action: Move to another valve.
-    for neighbor in valves[current_valve].neighbors:
-      max_benefit = max(max_benefit, max_released_pressure(minute + 1, neighbor, open_valves))
+            pressure_bought_here = 0
+            # In the event we stayed here a minute ago, we can open this valve now.
+            if previous_valve.name == current_valve.name and not current_valve.name in open_valves:
+              # The pressure we sign up for by opening this valve.
+              pressure_bought_here = current_valve.rate * (_TOTAL_MINUTES - minute)
 
-  pressure_cache[key] = max_benefit + pressure_released
-  return max_benefit + pressure_released
+              # Open the current valve.
+              open_valves |= set([current_valve.name])
 
-print("Best result: ", max_released_pressure(1, _FIRST_VALVE, frozenset()))
+            # If this results in a better state, replace the best state we have so far.
+            best_running_pressure = state_table[current_key][0]
+            if previous_pressure + pressure_bought_here > best_running_pressure:
+              state_table[current_key] = (
+                previous_pressure + pressure_bought_here,
+                open_valves
+              )
+  
+  # Determine the best pressure we can get at each valve in the last minute.
+  return max([state_table[key(v.name, _TOTAL_MINUTES - 1)] for v in valves.values()])
+
+print("Best result: ", max_released_pressure())
