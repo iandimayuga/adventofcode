@@ -47,16 +47,16 @@ print()
 # Dynamic Programming solution
 
 # Table for if a valve is reachable by a certain minute.
-reach_set: set[str] = set()
+reach_set = set()
 # Table for the open valves and max pressure signed up for
 # while at a certain final valve by a certain minute.
-state_table: dict[str, tuple[int, frozenset[str]]] = {}
+state_table = {}
 
 def key(valve: str, minute: int):
-  return "{v:s}{m:02d}".format(v = valve, m = minute)
+  return (valve, minute)
 
 def max_released_pressure():
-  # Only the first valve is reachable in the first minute.
+  # Only the first valve is reachable in the zeroth minute.
   first_key = key(_FIRST_VALVE, 0)
   reach_set.add(first_key)
   state_table[first_key] = (0, frozenset())
@@ -70,22 +70,25 @@ def max_released_pressure():
 
       for previous_valve in valves.values():
         previous_key = key(previous_valve.name, minute - 1)
-        if (previous_key in reach_set and
-            (current_valve.name == previous_valve.name or current_valve.name in previous_valve.neighbors)
-        ):
+
+        if previous_key in reach_set:
+          previous_pressure = state_table[previous_key][0]
+          open_valves = state_table[previous_key][1]
+
+          if (current_valve.name == previous_valve.name or 
+            current_valve.name in previous_valve.neighbors):
             reach_set.add(key(current_valve.name, minute))
 
-            previous_pressure = state_table[previous_key][0]
-            open_valves = state_table[previous_key][1]
-
             pressure_bought_here = 0
-            # In the event we stayed here a minute ago, we can open this valve now.
-            if previous_valve.name == current_valve.name and not current_valve.name in open_valves:
+            # In the event we stayed here this minute, we can open the valve.
+            if (previous_valve.name == current_valve.name and
+              not current_valve.name in set([valve[0] for valve in open_valves]) and
+              current_valve.rate > 0):
               # The pressure we sign up for by opening this valve.
               pressure_bought_here = current_valve.rate * (_TOTAL_MINUTES - minute)
 
               # Open the current valve.
-              open_valves |= set([current_valve.name])
+              open_valves |= set([current_key])
 
             # If this results in a better state, replace the best state we have so far.
             best_running_pressure = state_table[current_key][0]
